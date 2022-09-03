@@ -60,3 +60,16 @@ podman images
 podman run --name lab-apache -d -p 10080:80 do180/apache
 podman ps
 curl 127.0.0.1:10080
+
+# lab 5
+vi Containerfile 
+podman build --layers=false -t do180/apache .
+podman images
+podman tag do180/apache do180/custom-apache
+podman images
+podman rmi do180/apache
+podman images
+podman run -d --name containerfile -p 20080:8080 do180/custom-apache
+curl http://localhost:20080
+lab dockerfile-review grade
+lab dockerfile-review finish
