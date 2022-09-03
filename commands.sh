@@ -73,3 +73,20 @@ podman run -d --name containerfile -p 20080:8080 do180/custom-apache
 curl http://localhost:20080
 lab dockerfile-review grade
 lab dockerfile-review finish
+
+# guided 6
+source /usr/local/etc/ocp4.config 
+oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+oc new-project ${RHT_OCP4_DEV_USER}-mysql-openshift
+oc new-app --template=mysql-persistent -p MYSQL_USER=user1 -p MYSQL_PASSWORD=mypa55 -p MYSQL_DATABASE=testdb -p MYSQL_ROOT_PASSWORD=r00tpa55 -p VOLUME_CAPACITY=10Gi
+
+oc status
+oc get pods
+oc get svc
+oc describe svc mysql
+oc get pvc
+oc describe pvc mysql
+
+oc port-forward mysql-1-kwl2t 3306:3306
+mysql -uuser1 -pmypa55 --protocol tcp -h 127.0.0.1
+oc delete project tzpfpb-mysql-openshift 
