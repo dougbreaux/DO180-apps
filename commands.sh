@@ -53,3 +53,10 @@ lab image-review grade
 podman run --name official-nginx -d -p 8080:80 quay.io/redhattraining/nginx:1.17
 podman stop official-nginx 
 lab image-review grade
+
+# guided 5
+podman build --layers=false -t do180/apache .
+podman images
+podman run --name lab-apache -d -p 10080:80 do180/apache
+podman ps
+curl 127.0.0.1:10080
