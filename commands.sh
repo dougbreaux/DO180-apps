@@ -90,3 +90,24 @@ oc describe pvc mysql
 oc port-forward mysql-1-kwl2t 3306:3306
 mysql -uuser1 -pmypa55 --protocol tcp -h 127.0.0.1
 oc delete project tzpfpb-mysql-openshift 
+
+# guided 6 route
+lab-configure
+source /usr/local/etc/ocp4.config 
+oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+lab openshift-routes start
+
+oc new-project ${RHT_OCP4_DEV_USER}-route
+oc new-app --docker-image=quay.io/redhattraining/php-hello-dockerfile --name php-helloworld
+oc status
+oc get pods -w
+oc describe svc php-helloworld 
+oc expose svc php-helloworld 
+oc describe route
+curl http://php-helloworld-tzpfpb-route.apps.na46a.prod.ole.redhat.com
+curl http://php-helloworld-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
+oc delete route php-helloworld 
+oc expose svc php-helloworld --name ${RHT_OCP4_DEV_USER}-xyz
+oc describe route
+curl http://${RHT_OCP4_DEV_USER}-xyz-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
+lab openshift-routes finish
