@@ -146,3 +146,16 @@ vi php-helloworld/index.php
 cd php-helloworld/
 git add index.php;git commit -m 'updated app'; git push origin console
 lab openshift-webconsole finish
+
+# lab 6
+oc new-project ${RHT_OCP4_DEV_USER}-temps
+oc new-app https://github.com/dougbreaux/DO180-apps --name=temps --context-dir=temps --image-stream=php:7.3
+oc status
+oc logs -f temps-1-build
+oc get pods -w
+
+oc expose svc temps --hostname temps-${RHT_OCP4_DEV_USER}-ocp.${RHT_OCP4_WILDCARD_DOMAIN}
+oc get route
+curl http://temps-${RHT_OCP4_DEV_USER}-ocp.${RHT_OCP4_WILDCARD_DOMAIN}
+lab openshift-review grade
+lab openshift-review finish
