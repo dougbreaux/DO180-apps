@@ -111,3 +111,38 @@ oc expose svc php-helloworld --name ${RHT_OCP4_DEV_USER}-xyz
 oc describe route
 curl http://${RHT_OCP4_DEV_USER}-xyz-${RHT_OCP4_DEV_USER}-route.${RHT_OCP4_WILDCARD_DOMAIN}
 lab openshift-routes finish
+
+# guided 6 s2i
+oc get is -n openshift
+lab openshift-s2i start
+git checkout -b s2i
+git push -u origin s2i
+vi php-helloworld/index.php 
+oc new-project ${RHT_OCP4_DEV_USER}-s2i
+oc new-app php:7.3 --name=php-helloworld https://github.com/${RHT_OCP4_GITHUB_USER}/DO180-apps#s2i --context-dir php-helloworld
+oc logs -f php-helloworld-1-build 
+oc describe deployment php-helloworld 
+oc expose service php-helloworld --name ${RHT_OCP4_DEV_USER}-helloworld
+oc get route tzpfpb-helloworld -o jsonpath='{..spec.host}{"\n"}'
+curl http://tzpfpb-helloworld-tzpfpb-s2i.apps.na46a.prod.ole.redhat.com
+cd DO180-apps/php-helloworld/
+vi index.php
+git add index.php
+git commit -m "changed index"
+git push
+oc start-build php-helloworld 
+oc logs -f php-helloworld-2-build 
+oc get pods
+curl http://tzpfpb-helloworld-tzpfpb-s2i.apps.na46a.prod.ole.redhat.com
+
+# guided s2i console
+lab openshift-webconsole start
+cd DO180-apps/
+git checkout master
+git checkout -b console
+git push -u origin console
+echo ${RHT_OCP4_WILDCARD_DOMAIN}
+vi php-helloworld/index.php
+cd php-helloworld/
+git add index.php;git commit -m 'updated app'; git push origin console
+lab openshift-webconsole finish
