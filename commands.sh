@@ -159,3 +159,61 @@ oc get route
 curl http://temps-${RHT_OCP4_DEV_USER}-ocp.${RHT_OCP4_WILDCARD_DOMAIN}
 lab openshift-review grade
 lab openshift-review finish
+
+# multicontainer
+lab multicontainer-design start
+podman login registry.redhat.io -u $RHT_OCP4_QUAY_USER
+cd DO180/labs/multicontainer-design
+vi deploy/nodejs/Containerfile 
+ip -br addr list
+vi deploy/nodejs/nodejs-source/models/db.js 
+cd deploy/
+cd nodejs/
+./build.sh
+cd networked/
+vi run.sh
+./run.sh
+podman ps
+mysql -uuser1 -pmypa55 -h 172.25.250.9 -P30306 items < ~/DO180/labs/multicontainer-design/deploy/nodejs/networked/db.sql
+podman exec -it todoapi env
+curl -w "\n" http://127.0.0.1:30080/todo/api/items/1
+cd
+lab multicontainer-design finish
+
+# xx
+lab multicontainer-application start
+oc new-project ${RHT_OCP4_DEV_USER}-application
+vi DO180/labs/multicontainer-application/todo-app.yml 
+oc create -f DO180/labs/multicontainer-application/todo-app.yml 
+oc port-forward mysql 3306:3306
+mysql -uuser1 -pmypa55 -h 127.0.0.1 -P3306 items < DO180/labs/multicontainer-application/db.sql 
+oc expose svc todoapi 
+curl -w "\n" $(oc status | grep -o "http:.*com")/todo/api/items/1
+lab multicontainer-application finish
+
+# lab 7
+lab multicontainer-review start
+cd ../multicontainer-review/
+oc new-project ${RHT_OCP4_DEV_USER}-deploy
+cd images/mysql/
+cat Containerfile 
+podman build -t quay.io/breauxibm/do180-mysql-80-rhel8 .
+podman login -u ${QUAY_USER} quay.io
+podman push quay.io/breauxibm/do180-mysql-80-rhel8
+cd ../quote-php/
+podman build -t quay.io/breauxibm/do180-quote-php .
+podman push quay.io/breauxibm/do180-quote-php
+cd ../..
+vi quote-php-template.json 
+oc process -f quote-php-template.json --parameters=true
+oc create -f quote-php-template.json 
+oc get templates
+oc process quote-php-persistent --parameters
+oc process quote-php-persistent -p RHT_OCP4_QUAY_USER=${RHT_OCP4_QUAY_USER} -o yaml
+oc process quote-php-persistent -p RHT_OCP4_QUAY_USER=${RHT_OCP4_QUAY_USER} | oc create -f -
+oc get pods
+oc expose service quote-php 
+oc get routes
+curl http://quote-php-tzpfpb-deploy.apps.na46a.prod.ole.redhat.com
+lab multicontainer-review grade
+lab multicontainer-review finish
