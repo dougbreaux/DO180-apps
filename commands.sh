@@ -250,3 +250,14 @@ oc expose svc/nodejs-hello
 oc get route
 curl -w "\n" http://nodejs-hello-tzpfpb-nodejs.apps.na46a.prod.ole.redhat.com
 lab troubleshoot-s2i finish
+
+# podman troubleshoot httpd
+lab troubleshoot-container start
+vi ../DO180/labs/troubleshoot-container/conf/httpd.conf 
+cd ../DO180/labs/troubleshoot-container
+podman build -t troubleshoot-container .
+podman images
+podman run -d -p 10080:80 --name troubleshoot-container troubleshoot-container
+curl http://127.0.0.1:10080
+podman logs troubleshoot-container
+lab troubleshoot-container finish
