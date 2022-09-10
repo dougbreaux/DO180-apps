@@ -217,3 +217,36 @@ oc get routes
 curl http://quote-php-tzpfpb-deploy.apps.na46a.prod.ole.redhat.com
 lab multicontainer-review grade
 lab multicontainer-review finish
+
+# troubleshoot
+lab troubleshoot-s2i start
+git checkout master
+git checkout -b troubleshoot-s2i
+git push -u origin troubleshoot-s2i
+
+oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD}
+oc new-project ${RHT_OCP4_DEV_USER}-nodejs
+
+oc new-app https://github.com/dougbreaux/DO180-apps#troubleshoot-s2i --name=nodejs-hello --context-dir=nodejs-helloworld -i nodejs:12 --build-env npm_config_registry=http://${RHT_OCP4_NEXUS_SERVER}/repository/npm-proxy 
+oc status
+oc get pods -w
+oc logs -f nodejs-hello-1-build 
+oc logs bc/nodejs-hello
+vi nodejs-helloworld/package.json 
+git commit -am "Fixed Express release"
+git push
+oc start-build bc/nodejs-hello
+oc logs -f bc/nodejs-hello
+
+oc logs deployment/nodejs-hello
+vi nodejs-helloworld/package.json 
+git commit -am "Added start up script"
+git push
+oc start-build bc/nodejs-hello
+oc logs -f bc/nodejs-hello
+oc logs nodejs-hello-66ffd75867-r4dvc 
+oc get svc
+oc expose svc/nodejs-hello
+oc get route
+curl -w "\n" http://nodejs-hello-tzpfpb-nodejs.apps.na46a.prod.ole.redhat.com
+lab troubleshoot-s2i finish
