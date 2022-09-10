@@ -261,3 +261,44 @@ podman run -d -p 10080:80 --name troubleshoot-container troubleshoot-container
 curl http://127.0.0.1:10080
 podman logs troubleshoot-container
 lab troubleshoot-container finish
+
+# troubleshoot lab
+lab troubleshoot-review start
+git checkout master
+git checkout -b troubleshoot-review
+git push -u origin troubleshoot-review
+oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD}
+oc new-project ${RHT_OCP4_DEV_USER}-nodejs-app
+oc new-app --help
+oc new-app --name=nodejs-dev --image-stream=nodejs:12 https://github.com/dougbreaux/DO180-apps#troubleshoot-review --context-dir=nodejs-app -e npm_config_registry=http://${RHT_OCP4_NEXUS_SERVER}/repository/npm-proxy
+oc get bc
+oc logs -f bc/nodejs-dev
+vi nodejs-app/package.json 
+git commit -am "fix express dependency"
+git push
+oc get bc
+oc start-build bc/nodejs-dev
+oc logs -f bc/nodejs-dev
+oc logs deployment/nodejs-dev
+vi nodejs-app/server.js 
+git commit -am "fix module"
+git push
+oc start-build bc/nodejs-dev
+oc logs -f bc/nodejs-dev
+oc get pods
+oc logs deployment/nodejs-dev
+oc get svc
+oc expose svc/nodejs-dev
+oc get route
+curl http://nodejs-dev-tzpfpb-nodejs-app.apps.na46a.prod.ole.redhat.com
+oc logs deployment/nodejs-dev
+vi nodejs-app/server.js 
+git commit -am "fix env"
+git push
+oc start-build bc/nodejs-dev
+oc logs -f bc/nodejs-dev
+oc get pods -w
+oc logs deployment/nodejs-dev
+curl http://nodejs-dev-tzpfpb-nodejs-app.apps.na46a.prod.ole.redhat.com
+lab troubleshoot-review grade
+lab troubleshoot-review finish
