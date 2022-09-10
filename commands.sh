@@ -302,3 +302,32 @@ oc logs deployment/nodejs-dev
 curl http://nodejs-dev-tzpfpb-nodejs-app.apps.na46a.prod.ole.redhat.com
 lab troubleshoot-review grade
 lab troubleshoot-review finish
+
+# final
+lab comprehensive-review start
+cd ~/DO180/labs/comprehensive-review/
+cd image/
+./get-nexus-bundle.sh 
+podman build --tag nexus .
+../deploy/local/run-persistent.sh 
+podman ps
+podman logs modest_neumann
+curl -i http://127.0.0.1:18081/nexus/
+podman ps
+podman rm -f modest_neumann
+podman tag nexus quay.io/${RHT_OCP4_QUAY_USER}/nexus:latest
+podman login -u ${QUAY_USER} quay.io
+podman push quay.io/${RHT_OCP4_QUAY_USER}/nexus:latest
+
+oc new-project ${RHT_OCP4_DEV_USER}-review
+cd ../deploy/
+vi openshift/resources/nexus-deployment.yaml 
+oc create -f openshift/resources/nexus-deployment.yaml 
+oc get pods -w
+
+oc get svc
+oc expose svc/nexus
+oc get route
+curl http://nexus-${RHT_OCP4_DEV_USER}-review.${RHT_OCP4_WILDCARD_DOMAIN}/nexus/
+lab comprehensive-review grade
+lab comprehensive-review finish
